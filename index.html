@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>東京都ムービーメーカー</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:"UD デジタル 教科書体 N-R","BIZ UDPGothic","Yu Gothic",sans-serif;background:#eef5ff;color:#17324d}
+button{font:inherit}
+.hidden{display:none!important}
+
+#app{width:100%;height:100%;position:relative}
+.screen{position:absolute;inset:0;padding:18px;overflow:auto}
+h1,h2,p{margin:.3em 0}
+.title{font-size:clamp(28px,4vw,52px);font-weight:900}
+.sub{font-size:clamp(16px,2vw,24px)}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.homeBtn,.smallBtn,.mainBtn{
+  border:0;border-radius:18px;padding:12px 20px;font-weight:900;cursor:pointer;
+  box-shadow:0 5px 0 #b6c6d8;background:white;color:#17324d
+}
+.mainBtn{font-size:clamp(20px,2.5vw,30px);padding:14px 28px;background:#ffe36e}
+.mainBtn:active,.homeBtn:active,.smallBtn:active{transform:translateY(3px);box-shadow:0 2px 0 #b6c6d8}
+
+#home{background:linear-gradient(#dff3ff,#f8fbff)}
+.homeTitle{text-align:center;margin-top:10px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1100px;margin:28px auto}
+.menuCard{
+  min-height:260px;border:0;border-radius:28px;padding:22px;cursor:pointer;font-weight:900;
+  box-shadow:0 10px 0 rgba(0,0,0,.12);position:relative;overflow:hidden
+}
+.menuCard .num{font-size:clamp(28px,4vw,48px)}
+.menuCard .name{font-size:clamp(24px,3vw,40px);margin-top:16px}
+.menuCard .status{position:absolute;right:14px;top:14px;background:white;border-radius:999px;padding:8px 14px;font-size:18px}
+.city{background:#ffe3d5}.green{background:#dff5d9}.sea{background:#d9f0ff}
+#finalArea{text-align:center;margin:10px auto;max-width:800px;padding:18px;border-radius:24px;background:#fff;box-shadow:0 6px 20px #0001}
+
+#builder{background:#f9fbfd}
+.builderWrap{max-width:1100px;margin:auto}
+.progress{display:flex;gap:10px;justify-content:center;margin:8px 0 18px}
+.dot{width:18px;height:18px;border-radius:50%;background:#c9d3dd}
+.dot.on{background:#ffbf3f}
+.questionBox{
+  background:white;border-radius:28px;padding:24px;box-shadow:0 8px 28px #0001;text-align:center
+}
+.fixedText{font-size:clamp(24px,3vw,42px);font-weight:900;margin:8px 0 18px}
+.choiceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.choiceGrid.two{grid-template-columns:repeat(2,1fr);max-width:700px;margin:auto}
+.choice{
+  border:5px solid transparent;background:#f3f6f9;border-radius:22px;padding:10px;cursor:pointer;
+  min-height:170px;font-weight:900;font-size:clamp(18px,2.2vw,28px);display:flex;flex-direction:column;justify-content:center;align-items:center
+}
+.choice img{width:100%;height:120px;object-fit:cover;border-radius:14px;background:#dfe7ef}
+.choice.selected{border-color:#ffb000;background:#fff7cf;transform:scale(1.02)}
+.choice.textChoice{min-height:130px;font-size:clamp(30px,4vw,52px)}
+.navrow{display:flex;justify-content:center;gap:16px;margin-top:20px;flex-wrap:wrap}
+.notice{font-size:18px;color:#5b6f83;margin-top:12px}
+
+#movie{padding:0;background:#000;color:white;overflow:hidden}
+#movieStage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.bgImage{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78);animation:slowZoom 10s linear forwards}
+@keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+.overlay{position:absolute;inset:0;background:linear-gradient(transparent,#0008)}
+.movieText{position:relative;z-index:2;text-align:center;font-weight:900;text-shadow:0 4px 10px #000;font-size:clamp(30px,5vw,72px);padding:20px}
+.movieSub{font-size:clamp(20px,3vw,36px);display:block;margin-top:15px}
+.bigWord{font-size:clamp(60px,10vw,140px);animation:pop .6s both}
+@keyframes pop{0%{transform:scale(.2);opacity:0}75%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+.fadeIn{animation:fade .7s both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.slideUp{animation:slideUp .7s both}
+@keyframes slideUp{from{transform:translateY(70px);opacity:0}to{transform:none;opacity:1}}
+
+.glitch{animation:glitch .12s infinite;background:#150000}
+@keyframes glitch{
+  0%{transform:translate(0)}25%{transform:translate(-8px,4px)}50%{transform:translate(8px,-5px)}75%{transform:translate(-5px,-4px)}100%{transform:translate(0)}
+}
+.errorText{font-size:clamp(48px,8vw,120px);color:#ff4a4a;text-shadow:4px 4px #00d9ff,-4px -3px #fff}
+#movieControls{position:absolute;z-index:10;right:14px;bottom:14px;display:flex;gap:10px}
+#movieControls button{background:#ffffffdd;border:0;border-radius:999px;padding:10px 16px;font-weight:900}
+
+.completeBurst{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#fff7b0 0,#ffcf54 45%,#ff9d4c 100%);color:#5b2e00;text-align:center
+}
+.completeBurst h2{font-size:clamp(44px,7vw,96px)}
+.finalGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:90vw;max-width:1000px}
+.finalGrid img{width:100%;height:42vh;object-fit:cover;border-radius:18px;background:#dfe7ef}
+.finalItem{position:relative;background:#fff;border-radius:18px;overflow:hidden;min-height:42vh;display:flex;align-items:center;justify-content:center;color:#17324d;font-weight:900;font-size:clamp(20px,2.4vw,34px);text-align:center;padding:14px}
+.finalItem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.finalItem .label{position:absolute;left:10px;right:10px;bottom:10px;background:#ffffffdd;color:#17324d;border-radius:12px;padding:8px;z-index:2}
+.placeholder{background:repeating-linear-gradient(45deg,#e7eef6,#e7eef6 16px,#f7fbff 16px,#f7fbff 32px)}
+
+
+/* ===== 派手派手バリエーション演出 ===== */
+.heroWord{
+  font-size:clamp(110px,20vw,260px)!important;
+  line-height:.85;
+  letter-spacing:.02em;
+  font-weight:1000;
+  text-shadow:0 10px 24px #0009,0 0 30px #fff8;
+}
+.zoomBurst{animation:zoomBurst .72s cubic-bezier(.14,1.5,.35,1) both}
+@keyframes zoomBurst{
+  0%{transform:scale(.01) rotate(-15deg);opacity:0}
+  65%{transform:scale(1.35) rotate(4deg);opacity:1}
+  100%{transform:scale(1) rotate(0)}
+}
+.flyLeft{animation:flyLeft .8s cubic-bezier(.15,.9,.2,1) both}
+@keyframes flyLeft{from{transform:translateX(-130vw) rotate(-14deg) scale(.65);opacity:0}to{transform:none;opacity:1}}
+.flyRight{animation:flyRight .8s cubic-bezier(.15,.9,.2,1) both}
+@keyframes flyRight{from{transform:translateX(130vw) rotate(14deg) scale(.65);opacity:0}to{transform:none;opacity:1}}
+.dropIn{animation:dropIn .75s cubic-bezier(.15,1.2,.25,1) both}
+@keyframes dropIn{0%{transform:translateY(-120vh) rotate(10deg) scale(.5);opacity:0}70%{transform:translateY(22px) rotate(-3deg) scale(1.08);opacity:1}100%{transform:none}}
+.spinCard{animation:spinCard .9s cubic-bezier(.15,.9,.2,1) both}
+@keyframes spinCard{0%{transform:perspective(900px) rotateY(110deg) rotateZ(-10deg) scale(.45);opacity:0}100%{transform:perspective(900px) rotateY(0) rotateZ(0) scale(1);opacity:1}}
+.wipeImage{clip-path:inset(0 100% 0 0);animation:wipeOpen .85s cubic-bezier(.15,.9,.2,1) forwards}
+@keyframes wipeOpen{to{clip-path:inset(0 0 0 0)}}
+.diagonalImage{clip-path:polygon(0 0,0 0,0 100%,0 100%);animation:diagOpen .9s cubic-bezier(.15,.9,.2,1) forwards}
+@keyframes diagOpen{to{clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}}
+.floatText{animation:floatText .9s ease-out both}
+@keyframes floatText{0%{transform:translateY(120px) scale(.65);opacity:0}65%{transform:translateY(-16px) scale(1.08);opacity:1}100%{transform:none}}
+.waveText{animation:waveText .9s cubic-bezier(.15,.9,.2,1) both}
+@keyframes waveText{0%{transform:translateY(120px) rotate(-10deg) scale(.7);opacity:0}60%{transform:translateY(-14px) rotate(4deg) scale(1.08);opacity:1}100%{transform:none}}
+.cityFlash{background:linear-gradient(135deg,#171717,#5d6b7e)}
+.greenFlash{background:radial-gradient(circle at 50% 70%,#f1ffe8,#68b85d)}
+.seaFlash{background:linear-gradient(#61d2ff,#0065a5)}
+.ribbon{
+  position:absolute;left:-10%;right:-10%;top:50%;transform:translateY(-50%) rotate(-3deg);
+  background:#fff9;padding:16px 0;backdrop-filter:blur(4px)
+}
+
+/* 9 scene-specific image motions */
+.fx-city-1{animation:cityTower 4.3s cubic-bezier(.12,.85,.2,1) both}
+@keyframes cityTower{
+  0%{transform:scale(.22) rotate(-9deg) translateY(60vh);filter:brightness(2) blur(8px)}
+  28%{transform:scale(1.28) rotate(3deg) translateY(-3vh);filter:brightness(1.2) blur(0)}
+  55%{transform:scale(.96) rotate(-1deg)}
+  100%{transform:scale(1.12) rotate(0)}
+}
+.fx-city-2{animation:cityRush 4.3s cubic-bezier(.16,.8,.18,1) both}
+@keyframes cityRush{
+  0%{transform:translateX(120vw) scale(1.6) skewX(-12deg);filter:contrast(1.8)}
+  45%{transform:translateX(-5vw) scale(.92) skewX(4deg)}
+  65%{transform:translateX(2vw) scale(1.08) skewX(-2deg)}
+  100%{transform:translateX(0) scale(1.18) skewX(0)}
+}
+.fx-city-3{animation:cityPostcard 4.3s cubic-bezier(.15,.9,.2,1) both}
+@keyframes cityPostcard{
+  0%{transform:perspective(900px) rotateY(105deg) rotateZ(18deg) scale(.4);opacity:0}
+  48%{transform:perspective(900px) rotateY(-8deg) rotateZ(-5deg) scale(1.08);opacity:1}
+  70%{transform:perspective(900px) rotateY(3deg) rotateZ(2deg) scale(.98)}
+  100%{transform:perspective(900px) rotateY(0) rotateZ(0) scale(1.08)}
+}
+
+.fx-green-2{animation:greenGrow 4.3s cubic-bezier(.13,.9,.18,1) both;transform-origin:50% 100%}
+@keyframes greenGrow{
+  0%{transform:scale(.15,.05) translateY(50vh);filter:saturate(.4) blur(10px)}
+  40%{transform:scale(1.08,1.28) translateY(-3vh);filter:saturate(1.4) blur(0)}
+  65%{transform:scale(.96,1.02)}
+  100%{transform:scale(1.12)}
+}
+.fx-green-3{animation:greenLeafSpin 4.3s cubic-bezier(.13,.9,.18,1) both}
+@keyframes greenLeafSpin{
+  0%{transform:scale(.2) rotate(-40deg) translate(-45vw,30vh);opacity:0;filter:hue-rotate(80deg)}
+  48%{transform:scale(1.22) rotate(8deg) translate(3vw,-2vh);opacity:1;filter:hue-rotate(0)}
+  72%{transform:scale(.98) rotate(-3deg)}
+  100%{transform:scale(1.1) rotate(0)}
+}
+
+.fx-sea-2{animation:seaWave 4.3s ease-in-out both}
+@keyframes seaWave{
+  0%{transform:translateY(90vh) scale(1.5) rotate(-7deg);filter:blur(10px) saturate(1.6)}
+  38%{transform:translateY(-8vh) scale(.94) rotate(3deg);filter:blur(0) saturate(1.3)}
+  56%{transform:translateY(4vh) scale(1.06) rotate(-2deg)}
+  74%{transform:translateY(-2vh) scale(1.02) rotate(1deg)}
+  100%{transform:translateY(0) scale(1.12) rotate(0)}
+}
+.fx-sea-3{animation:seaIsland 4.3s cubic-bezier(.14,.88,.2,1) both}
+@keyframes seaIsland{
+  0%{transform:scale(2.4) rotate(14deg);opacity:0;filter:blur(16px)}
+  35%{transform:scale(.72) rotate(-6deg);opacity:1;filter:blur(0)}
+  58%{transform:scale(1.22) rotate(3deg)}
+  76%{transform:scale(.98) rotate(-1deg)}
+  100%{transform:scale(1.1) rotate(0)}
+}
+
+.flashPulse{animation:flashPulse .48s ease-out both}
+@keyframes flashPulse{0%{filter:brightness(3)}100%{filter:brightness(1)}}
+.screenShake{animation:screenShake .3s 2}
+@keyframes screenShake{0%,100%{transform:translate(0)}25%{transform:translate(-12px,6px)}50%{transform:translate(10px,-6px)}75%{transform:translate(-6px,-4px)}}
+.wordSlam{animation:wordSlam .72s cubic-bezier(.08,1.45,.18,1) both}
+@keyframes wordSlam{
+  0%{transform:scale(5) rotate(12deg);opacity:0}
+  55%{transform:scale(.82) rotate(-3deg);opacity:1}
+  75%{transform:scale(1.12) rotate(1deg)}
+  100%{transform:scale(1)}
+}
+.wordSide{animation:wordSide .75s cubic-bezier(.15,.9,.2,1) both}
+@keyframes wordSide{from{transform:translateX(-120vw) skewX(-22deg);opacity:0}to{transform:none;opacity:1}}
+.wordFlip{animation:wordFlip .8s cubic-bezier(.15,.9,.2,1) both}
+@keyframes wordFlip{from{transform:perspective(700px) rotateX(100deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.spark{
+  position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 0 24px #fff;animation:sparkFly 2s ease-out forwards;z-index:5
+}
+@keyframes sparkFly{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--x),var(--y)) scale(0);opacity:0}}
+
+
+@keyframes greenRise{
+  from{transform:translateX(-50%) translateY(100%) scale(.7)}
+  to{transform:translateX(-50%) translateY(-35%) scale(1.2)}
+}
+@keyframes seaRise{
+  from{transform:translateY(100%) rotate(-5deg)}
+  to{transform:translateY(-15%) rotate(0)}
+}
+
+@media(max-width:800px){
+  .cards{grid-template-columns:1fr}
+  .menuCard{min-height:170px}
+  .choiceGrid{grid-template-columns:1fr 1fr}
+  .choiceGrid .choice:last-child:nth-child(odd){grid-column:1/-1}
+}
+
+/* ===== 追加エフェクト ===== */
+.speedLine{
+  position:absolute;height:6px;width:48vw;
+  background:linear-gradient(90deg,transparent,#fff,transparent);
+  opacity:.85;z-index:6;pointer-events:none;
+  animation:speedLineMove 2.8s linear both;
+}
+@keyframes speedLineMove{
+  from{transform:translateX(-130vw) skewX(-28deg)}
+  to{transform:translateX(230vw) skewX(-28deg)}
+}
+.flashRing{
+  position:absolute;left:50%;top:50%;width:20px;height:20px;
+  border:14px solid #fff;border-radius:50%;transform:translate(-50%,-50%);
+  z-index:7;pointer-events:none;animation:ringBlast 2.6s ease-out both;
+}
+@keyframes ringBlast{
+  from{width:20px;height:20px;opacity:1}
+  to{width:150vmax;height:150vmax;opacity:0}
+}
+
+
+/* ===== MAX 派手演出（素材なし） ===== */
+.fxLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.flashFull{position:absolute;inset:0;background:#fff;animation:flashFull 1.2s ease-out both;z-index:20}
+@keyframes flashFull{0%{opacity:1}35%{opacity:.95}100%{opacity:0}}
+
+.radialBurst{
+  position:absolute;left:50%;top:50%;width:160vmax;height:160vmax;transform:translate(-50%,-50%) scale(.04);
+  background:repeating-conic-gradient(from 0deg,#fff 0 4deg,transparent 4deg 10deg);
+  opacity:.35;animation:radialBurst 2.2s cubic-bezier(.15,.9,.2,1) both
+}
+@keyframes radialBurst{0%{transform:translate(-50%,-50%) scale(.03) rotate(0);opacity:.8}
+70%{opacity:.28}100%{transform:translate(-50%,-50%) scale(1.2) rotate(35deg);opacity:0}}
+
+.gridRush{
+  position:absolute;inset:-20%;background:
+  linear-gradient(#ffffff22 2px,transparent 2px),
+  linear-gradient(90deg,#ffffff22 2px,transparent 2px);
+  background-size:70px 70px;transform:perspective(700px) rotateX(65deg) translateY(25%);
+  transform-origin:center bottom;animation:gridRush 3.5s linear both
+}
+@keyframes gridRush{from{background-position:0 0;filter:brightness(2)}to{background-position:0 560px;filter:brightness(1)}}
+
+.scanBar{
+  position:absolute;left:0;right:0;height:10vh;top:-12vh;
+  background:linear-gradient(transparent,#ffffffaa,transparent);
+  mix-blend-mode:screen;animation:scanDown 2.6s ease-in-out both
+}
+@keyframes scanDown{to{top:105vh}}
+
+.cornerSlash{
+  position:absolute;width:70vw;height:10vh;background:#fff8;transform:rotate(-25deg);
+  animation:slashCross 2.3s ease-out both
+}
+@keyframes slashCross{from{left:-100vw;top:85vh}to{left:120vw;top:-20vh}}
+
+.starPop{
+  position:absolute;font-size:clamp(20px,4vw,60px);font-weight:1000;
+  animation:starPop 2s cubic-bezier(.1,1.2,.25,1) both;text-shadow:0 0 18px #fff
+}
+@keyframes starPop{0%{transform:scale(0) rotate(-120deg);opacity:0}
+55%{transform:scale(1.5) rotate(15deg);opacity:1}
+100%{transform:scale(.9) rotate(0);opacity:0}}
+
+.splitWrap{position:absolute;inset:0;z-index:2}
+.splitPiece{position:absolute;background-size:200% 200%;background-repeat:no-repeat}
+.splitTL{left:0;top:0;width:50%;height:50%;background-position:0 0;animation:pieceTL 2.4s cubic-bezier(.12,.9,.18,1) both}
+.splitTR{right:0;top:0;width:50%;height:50%;background-position:100% 0;animation:pieceTR 2.4s cubic-bezier(.12,.9,.18,1) both}
+.splitBL{left:0;bottom:0;width:50%;height:50%;background-position:0 100%;animation:pieceBL 2.4s cubic-bezier(.12,.9,.18,1) both}
+.splitBR{right:0;bottom:0;width:50%;height:50%;background-position:100% 100%;animation:pieceBR 2.4s cubic-bezier(.12,.9,.18,1) both}
+@keyframes pieceTL{from{transform:translate(-80vw,-70vh) rotate(-25deg) scale(.45);opacity:0}to{transform:none;opacity:1}}
+@keyframes pieceTR{from{transform:translate(80vw,-70vh) rotate(25deg) scale(.45);opacity:0}to{transform:none;opacity:1}}
+@keyframes pieceBL{from{transform:translate(-80vw,70vh) rotate(25deg) scale(.45);opacity:0}to{transform:none;opacity:1}}
+@keyframes pieceBR{from{transform:translate(80vw,70vh) rotate(-25deg) scale(.45);opacity:0}to{transform:none;opacity:1}}
+
+.shutterWrap{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:repeat(6,1fr)}
+.shutter{
+  background-size:600% 100%;background-repeat:no-repeat;
+  transform:translateY(var(--dir));animation:shutterIn 2.2s cubic-bezier(.12,.9,.2,1) both
+}
+@keyframes shutterIn{to{transform:translateY(0)}}
+
+.circleReveal{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  clip-path:circle(0% at 50% 50%);animation:circleReveal 2.4s cubic-bezier(.1,.9,.18,1) both;z-index:2
+}
+@keyframes circleReveal{to{clip-path:circle(75% at 50% 50%)}}
+
+.flipWall{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  transform-origin:center;animation:flipWall 2.7s cubic-bezier(.12,.9,.2,1) both;z-index:2
+}
+@keyframes flipWall{
+  0%{transform:perspective(900px) rotateX(-90deg) scale(.55);opacity:0}
+  55%{transform:perspective(900px) rotateX(10deg) scale(1.08);opacity:1}
+  100%{transform:perspective(900px) rotateX(0) scale(1.12)}
+}
+
+.tunnelZoom{
+  position:absolute;inset:-15%;background-size:cover;background-position:center;
+  animation:tunnelZoom 3s cubic-bezier(.1,.85,.2,1) both;z-index:2
+}
+@keyframes tunnelZoom{
+  0%{transform:scale(3.8) rotate(12deg);filter:blur(20px) brightness(2)}
+  45%{transform:scale(.82) rotate(-4deg);filter:blur(0) brightness(1.1)}
+  70%{transform:scale(1.22) rotate(2deg)}
+  100%{transform:scale(1.08) rotate(0)}
+}
+
+.bounceFrame{
+  position:absolute;inset:7%;background-size:cover;background-position:center;border:10px solid #fff;
+  box-shadow:0 0 0 12px #0005,0 24px 50px #0008;
+  animation:bounceFrame 2.7s cubic-bezier(.08,1.35,.2,1) both;z-index:2
+}
+@keyframes bounceFrame{
+  0%{transform:translateY(-120vh) rotate(-18deg) scale(.4)}
+  55%{transform:translateY(5vh) rotate(5deg) scale(1.1)}
+  72%{transform:translateY(-2vh) rotate(-2deg) scale(.98)}
+  100%{transform:none}
+}
+
+.textMega{
+  font-size:clamp(56px,10vw,140px)!important;font-weight:1000;line-height:1.05;
+  text-shadow:0 10px 24px #000,0 0 12px #fff6
+}
+.textOutline{
+  -webkit-text-stroke:3px #fff;color:#111;text-shadow:8px 8px 0 #ffcf4a,12px 12px 0 #0008
+}
+.textNeon{
+  color:#fff;text-shadow:0 0 8px #fff,0 0 20px #51c9ff,0 0 40px #0aa9ff,0 0 70px #0878ff
+}
+.textNature{
+  color:#efffe8;text-shadow:0 0 8px #fff,0 0 22px #70d65c,0 8px 18px #153d20
+}
+.textSea{
+  color:#fff;text-shadow:0 0 10px #fff,0 0 26px #5edbff,0 8px 20px #004b78
+}
+
+.popInEach span{display:inline-block;animation:charPop 1.5s cubic-bezier(.08,1.4,.18,1) both}
+@keyframes charPop{0%{transform:translateY(-90vh) rotate(-25deg) scale(.2);opacity:0}
+65%{transform:translateY(14px) rotate(5deg) scale(1.2);opacity:1}100%{transform:none}}
+
+.ripple{
+  position:absolute;border:8px solid #fff;border-radius:50%;left:50%;top:50%;
+  transform:translate(-50%,-50%);animation:ripple 2.5s ease-out both;z-index:8
+}
+@keyframes ripple{from{width:10px;height:10px;opacity:1}to{width:130vmax;height:130vmax;opacity:0}}
+
+.confetti{position:absolute;width:14px;height:34px;z-index:12;animation:confettiFall 3.8s linear both}
+@keyframes confettiFall{from{transform:translateY(-20vh) rotate(0)}to{transform:translateY(120vh) rotate(720deg)}}
+
+.impactBar{
+  position:absolute;left:-10%;right:-10%;top:50%;height:18vh;transform:translateY(-50%) rotate(-3deg);
+  background:#fffdd;box-shadow:0 0 45px #fff;animation:impactBar 1.8s ease-out both;z-index:4
+}
+@keyframes impactBar{from{transform:translateY(-50%) rotate(-3deg) scaleX(0)}to{transform:translateY(-50%) rotate(-3deg) scaleX(1)}}
+
+.bgPulse{animation:bgPulse 2.4s ease-in-out both}
+@keyframes bgPulse{0%{filter:brightness(.5)}40%{filter:brightness(1.8)}100%{filter:brightness(1)}}
+
+
+.city2Readable{
+  background:rgba(0,0,0,.62);
+  border-radius:24px;
+  padding:20px 28px;
+  box-shadow:0 8px 28px #0008,0 0 20px #0008;
+}
+
+
+.landmarkReadable{
+  color:#fff !important;
+  -webkit-text-stroke:4px #2a1a00;
+  text-shadow:
+    0 5px 0 #2a1a00,
+    0 10px 24px #000c !important;
+  background:rgba(40,24,0,.68);
+  border:5px solid #fff8;
+  border-radius:28px;
+  padding:22px 34px;
+  box-shadow:0 10px 30px #0008;
+}
+
+
+/* 「東京の名所へ！」専用：読みやすい1文字ずつの登場演出 */
+.landmarkStage{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(255,202,74,.28),transparent 34%),
+    linear-gradient(135deg,#151515 0%,#2b1b05 55%,#111 100%);
+  overflow:hidden;
+}
+.landmarkBeam{
+  position:absolute;left:50%;top:50%;
+  width:150vmax;height:18px;
+  background:linear-gradient(90deg,transparent,#ffd95a,transparent);
+  transform-origin:center;
+  opacity:.45;
+  animation:landmarkBeam 3.4s ease-in-out both;
+}
+.landmarkBeam.b1{transform:translate(-50%,-50%) rotate(18deg)}
+.landmarkBeam.b2{transform:translate(-50%,-50%) rotate(-18deg);animation-delay:.25s}
+@keyframes landmarkBeam{
+  0%{opacity:0;filter:blur(12px);scale:.3 1}
+  35%{opacity:.65;filter:blur(2px);scale:1 1}
+  100%{opacity:.18;filter:blur(8px);scale:1.2 1}
+}
+.landmarkLine{
+  position:relative;z-index:5;
+  display:flex;align-items:center;justify-content:center;
+  gap:.03em;white-space:nowrap;
+  font-size:clamp(56px,9vw,122px);
+  font-weight:1000;
+  color:#fff;
+  text-shadow:0 7px 18px #000;
+  letter-spacing:.02em;
+}
+.landmarkChar{
+  display:inline-block;
+  opacity:0;
+  animation:landmarkCharIn 2.1s cubic-bezier(.13,1.15,.22,1) forwards;
+}
+.landmarkChar:nth-child(odd){transform:translateY(-85vh) scale(.55)}
+.landmarkChar:nth-child(even){transform:translateY(85vh) scale(.55)}
+.landmarkChar:nth-child(1){animation-delay:.00s}
+.landmarkChar:nth-child(2){animation-delay:.16s}
+.landmarkChar:nth-child(3){animation-delay:.32s}
+.landmarkChar:nth-child(4){animation-delay:.48s}
+.landmarkChar:nth-child(5){animation-delay:.64s}
+.landmarkChar:nth-child(6){animation-delay:.80s}
+.landmarkChar:nth-child(7){animation-delay:.96s}
+@keyframes landmarkCharIn{
+  0%{opacity:0}
+  62%{opacity:1;transform:translateY(10px) scale(1.12)}
+  80%{transform:translateY(-5px) scale(.98)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.landmarkUnderline{
+  position:absolute;left:50%;top:65%;
+  width:0;height:8px;border-radius:999px;
+  background:#ffd95a;transform:translateX(-50%);
+  box-shadow:0 0 20px #ffd95a;
+  animation:landmarkUnderline 2.2s 1.1s ease forwards;
+  z-index:4;
+}
+@keyframes landmarkUnderline{to{width:min(72vw,850px)}}
+
+
+/* ===== 2周目：演出選択 ===== */
+.effectChooser{
+  margin:18px auto 0;
+  max-width:900px;
+  background:#eef6ff;
+  border:4px solid #bdd1e6;
+  border-radius:20px;
+  padding:14px 16px;
+}
+.effectChooserTitle{
+  font-size:24px;
+  font-weight:1000;
+  margin-bottom:8px;
+}
+#effectSelect{
+  width:min(100%,720px);
+  font:inherit;
+  font-size:24px;
+  font-weight:900;
+  padding:12px 14px;
+  border:4px solid #7fa8cc;
+  border-radius:14px;
+  background:#fff;
+  color:#17324d;
+}
+#effectDesc{
+  margin-top:8px;
+  font-size:18px;
+  font-weight:700;
+  color:#4a6378;
+}
+
+
+/* ===== 2周目解放ボタン ===== */
+.freeModeLockedNote{
+  margin-top:10px;
+  font-size:18px;
+  font-weight:900;
+  color:#5d6e7f;
+}
+.freeModeHero{
+  position:relative;
+  margin:14px 8px 0;
+  padding:18px 30px !important;
+  font-size:clamp(22px,3vw,34px) !important;
+  color:#3a1800 !important;
+  background:linear-gradient(135deg,#fff06b,#ffb347,#ff77a8) !important;
+  border:5px solid #fff !important;
+  box-shadow:
+    0 8px 0 #c86e32,
+    0 0 0 5px #ffcf48,
+    0 0 28px #ffbf48aa !important;
+  animation:freeModePulse 2.4s ease-in-out infinite;
+}
+.freeModeHero::before{
+  content:"NEW!  にゅー！";
+  position:absolute;
+  right:-16px;
+  top:-20px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#ff3d5a;
+  color:#fff;
+  font-size:16px;
+  transform:rotate(8deg);
+  box-shadow:0 4px 10px #0003;
+}
+@keyframes freeModePulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.045)}
+}
+
+
+/* ===== 固定文言のひらがな読み ===== */
+.readingBlock{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  vertical-align:middle;
+  max-width:100%;
+  line-height:1.06;
+}
+.readingMain{display:block}
+.readingKana{
+  display:block;
+  margin-top:.16em;
+  font-size:.48em;
+  line-height:1.12;
+  font-weight:800;
+  letter-spacing:.035em;
+  -webkit-text-stroke:0 !important;
+  text-shadow:none !important;
+  color:inherit;
+  opacity:.96;
+}
+.title .readingKana{font-size:.42em}
+.sub .readingKana{font-size:.62em}
+.choice .readingKana{font-size:.58em;margin-top:.2em}
+.textChoice .readingKana{font-size:.42em}
+.movieText .readingKana{
+  font-size:.38em;
+  margin-top:.18em;
+  text-shadow:0 2px 5px #000b !important;
+}
+.movieSub .readingKana{font-size:.55em}
+.mainBtn .readingKana,.smallBtn .readingKana,.homeBtn .readingKana{font-size:.58em}
+.menuCard .readingKana{font-size:.48em}
+.freeModeLockedNote .readingKana{font-size:.7em}
+.landmarkKana{
+  position:absolute;
+  z-index:6;
+  left:50%;
+  top:62%;
+  transform:translateX(-50%);
+  color:#fff;
+  font-size:clamp(24px,3.4vw,46px);
+  font-weight:900;
+  text-shadow:0 5px 14px #000;
+  white-space:nowrap;
+  opacity:0;
+  animation:landmarkKanaIn 1.7s 2.1s ease forwards;
+}
+@keyframes landmarkKanaIn{
+  from{opacity:0;transform:translate(-50%,18px)}
+  to{opacity:1;transform:translate(-50%,0)}
+}
+
+
+.freeReplayHero{
+  position:relative;
+  padding:18px 30px !important;
+  font-size:clamp(22px,3vw,34px) !important;
+  color:#fff !important;
+  background:linear-gradient(135deg,#1378d1,#6b50d9,#d848a1) !important;
+  border:5px solid #fff !important;
+  box-shadow:0 8px 0 #49389e,0 0 0 5px #8fc7ff,0 0 28px #6b50d988 !important;
+}
+.freeReplayHero::before{
+  content:"かんせい！";
+  position:absolute;
+  right:-15px;
+  top:-18px;
+  padding:6px 11px;
+  border-radius:999px;
+  background:#ffdf4d;
+  color:#432800;
+  font-size:16px;
+  font-weight:1000;
+  transform:rotate(7deg);
+  box-shadow:0 4px 10px #0003;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+<section id="home" class="screen">
+  <div class="homeTitle">
+    <div class="title">東京都ムービーメーカー</div>
+    <div class="sub">つくりたいムービーを えらぼう！</div>
+  </div>
+
+  <div class="cards">
+    <button class="menuCard city" onclick="openPart('city')">
+      <div class="status" id="status-city">まだ</div>
+      <div class="num">①</div><div class="name">東京 の 建物</div>
+    </button>
+
+    <button class="menuCard green" onclick="openPart('green')">
+      <div class="status" id="status-green">まだ</div>
+      <div class="num">②</div><div class="name">東京の緑</div>
+    </button>
+
+    <button class="menuCard sea" onclick="openPart('sea')">
+      <div class="status" id="status-sea">まだ</div>
+      <div class="num">③</div><div class="name">東京の海</div>
+    </button>
+  </div>
+
+  <div id="finalArea">
+    <div id="finalLocked">
+      <b>3つ できたら、1つのムービーになります。</b>
+    </div>
+    <div id="finalReady" class="hidden">
+      <div class="title">東京都ムービー かんせい！</div>
+      <button class="mainBtn" onclick="playFinalMovie()">▶ ぜんぶみる</button>
+      <div id="freeModeUnlock" class="hidden">
+        <button class="mainBtn freeModeHero" onclick="startFreeMode()">✏️ じぶんのことばでつくる</button>
+      </div>
+      <div id="freeMovieReplay" class="hidden" style="margin-top:18px">
+        <button class="mainBtn freeReplayHero" onclick="playFreeFinalMovie()">▶ じぶんのムービーを ぜんぶみる</button>
+      </div>
+      <div id="freeModeLockedNote" class="freeModeLockedNote">「ぜんぶみる」をさいごまでみると、あたらしいモードがひらきます。</div>
+    </div>
+  </div>
+</section>
+
+<section id="builder" class="screen hidden">
+  <div class="builderWrap">
+    <div class="topbar">
+      <button class="homeBtn" onclick="goHome()">🏠 ホーム</button>
+      <div>
+        <div class="title" id="partTitle"></div>
+        <div class="sub" id="modeLabel">しゃしんを えらぼう</div>
+      </div>
+      <div></div>
+    </div>
+
+    <div class="progress">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+
+    <div class="questionBox">
+      <div class="fixedText" id="questionText"></div>
+      <div id="choices" class="choiceGrid"></div>
+
+      <div id="freeTextBox" class="hidden" style="margin-top:18px">
+        <div class="fixedText" style="font-size:26px">このしゃしんを しょうかいしよう</div>
+        <input id="freeText" type="text" maxlength="50" placeholder="ことばを いれてね"
+          style="width:min(90%,800px);font-size:28px;padding:14px;border:4px solid #bdd1e6;border-radius:16px">
+
+        <div class="effectChooser">
+          <div class="effectChooserTitle">えんしゅつを えらぼう</div>
+          <select id="effectSelect" aria-label="ムービーの演出"></select>
+          <div id="effectDesc"></div>
+        </div>
+      </div>
+
+      <div class="navrow">
+        <button class="smallBtn" id="prevBtn" onclick="prevQuestion()">← もどる</button>
+        <button class="mainBtn" id="nextBtn" onclick="nextQuestion()">つぎへ →</button>
+      </div>
+      <div class="notice">えらんだときは、まだ ○× はでません。</div>
+    </div>
+  </div>
+</section>
+
+<section id="movie" class="screen hidden">
+  <div id="movieStage"></div>
+  <div id="movieControls">
+    <button onclick="skipMovie()">⏭ とばす</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+const DATA = {
+  city:{
+    title:"① 東京 の 建物",
+    color:"#ffe3d5",
+    questions:[
+      {
+        text:"ゆうめいな たかい たてものがあります",
+        errorMessage:"これは とうきょうやない！ おおさかや！",
+        type:"image",
+        options:[
+          {label:"東京スカイツリー",img:"images/city_skytree.jpg",ok:true},
+          {label:"東京タワー",img:"images/city_tokyotower.jpg",ok:true},
+          {label:"通天閣",img:"images/wrong_tsutenkaku.jpg",ok:false}
+        ]
+      },
+      {
+        text:"ビルが たくさん ならんでます",
+        errorMessage:"これは かながわけん です！",
+        type:"image",
+        options:[
+          {label:"新宿",img:"images/city_shinjuku.jpg",ok:true},
+          {label:"池袋",img:"images/city_ikebukuro.jpg",ok:true},
+          {label:"横浜・みなとみらい",img:"images/wrong_yokohama.jpg",ok:false}
+        ]
+      },
+      {
+        text:"れきしてきな たてものも あります",
+        errorMessage:"くまモンがいるのは くまもとけん です！",
+        type:"image",
+        options:[
+          {label:"浅草",img:"images/city_asakusa.jpg",ok:true},
+          {label:"皇居",img:"images/city_kokyo.jpg",ok:true},
+          {label:"熊本城とくまモン",img:"images/wrong_kumamoto.jpg",ok:false}
+        ]
+      }
+    ]
+  },
+
+  green:{
+    title:"② 東京の緑",
+    color:"#dff5d9",
+    questions:[
+      {
+        text:"とうきょう には しぜんが……",
+        errorMessage:"とうきょうにも しぜんはあります！",
+        type:"text",
+        options:[
+          {label:"ある",ok:true},
+          {label:"ない",ok:false}
+        ]
+      },
+      {
+        text:"おおきな やまが あります",
+        errorMessage:"ふじさんは とうきょうじゃないですよ",
+        type:"image",
+        options:[
+          {label:"高尾山",img:"images/green_takao.jpg",ok:true},
+          {label:"雲取山",img:"images/green_kumotori.jpg",ok:true},
+          {label:"富士山",img:"images/wrong_fuji.jpg",ok:false}
+        ]
+      },
+      {
+        text:"しぜんゆたかな こうえんです",
+        errorMessage:"しゅうがくりょこうで いったでしょ！ これはとちぎけん！",
+        type:"image",
+        options:[
+          {label:"国営昭和記念公園",img:"images/green_showakinen.jpg",ok:true},
+          {label:"新宿御苑",img:"images/green_shinjukugyoen.jpg",ok:true},
+          {label:"那須サファリパーク",img:"images/wrong_nasusafari.jpg",ok:false}
+        ]
+      }
+    ]
+  },
+
+  sea:{
+    title:"③ 東京の海",
+    color:"#d9f0ff",
+    questions:[
+      {
+        text:"とうきょうにはうみが……",
+        errorMessage:"とうきょうにも うみはあります！",
+        type:"text",
+        options:[
+          {label:"ある",ok:true},
+          {label:"ない",ok:false}
+        ]
+      },
+      {
+        text:"とうきょうの うみも たのしいよ",
+        errorMessage:"ざんねん！　これは おきなわけん です",
+        type:"image",
+        options:[
+          {label:"お台場海浜公園",img:"images/sea_odaiba.jpg",ok:true},
+          {label:"葛西臨海公園",img:"images/sea_kasai.jpg",ok:true},
+          {label:"古宇利大橋",img:"images/wrong_kouri.jpg",ok:false}
+        ]
+      },
+      {
+        text:"しまも あるのが とうきょうです。",
+        errorMessage:"シーパラダイス！　これは しまとは いわない！ とうきょう でもない！",
+        type:"image",
+        options:[
+          {label:"伊豆諸島",img:"images/sea_izu.jpg",ok:true},
+          {label:"八丈島",img:"images/sea_hachijo.jpg",ok:true},
+          {label:"八景島",img:"images/wrong_hakkeijima.jpg",ok:false}
+        ]
+      }
+    ]
+  }
+};
+
+
+
+const READINGS = {"東京都ムービーメーカー":"","つくりたいムービーを えらぼう！":"","東京の緑":"とうきょう の みどり","東京の海":"とうきょう の うみ","① 東京と都会":"いち　とうきょうととかい","② 東京の緑":"に　とうきょうのみどり","③ 東京の海":"さん　とうきょうのうみ","東京都ムービー かんせい！":"とうきょうとむーびー かんせい！","▶ ムービーをみる":"むーびーをみる","▶ できたムービーをみる":"できたむーびーをみる","🏠 ホーム":"ほーむ","🏠 ホームへ":"","「ぜんぶみる」をさいごまでみると、あたらしいモードがひらきます。":"「ぜんぶみる」をさいごまでみると、あたらしいむーどがひらきます。","えらんだもので ムービーをつくります":"","えらんだものが ムービーになりました。":"","１つえらびましょう":"","② 東京の緑へ":"に　とうきょうのみどりへ","③ 東京の海へ":"さん　とうきょうのうみへ","これは 東京都じゃないみたい！":"これは とうきょうとじゃないみたい！","東京スカイツリー":"とうきょうすかいつりー","東京タワー":"とうきょうたわー","通天閣":"つうてんかく","新宿":"しんじゅく","池袋":"いけぶくろ","横浜・みなとみらい":"よこはま・みなとみらい","浅草":"あさくさ","皇居":"こうきょ","熊本城とくまモン":"くまもとじょうとくまもん","高尾山":"たかおさん","雲取山":"くもとりやま","富士山":"ふじさん","国営昭和記念公園":"こくえいしょうわきねんこうえん","新宿御苑":"しんじゅくぎょえん","那須サファリパーク":"なすさふぁりぱーく","お台場海浜公園":"おだいばかいひんこうえん","葛西臨海公園":"かさいりんかいこうえん","古宇利大橋":"こうりおおはし","伊豆諸島":"いずしょとう","八丈島":"はちじょうじま","八景島":"はっけいじま","エラー！":"","3つの東京を":"みっつのとうきょうを","東京は":"とうきょうは","都会だけじゃない！":"とかいだけじゃない！","4分割アタック":"よんぶんかつあたっく","シャッターダッシュ":"しゃったーだっしゅ","トンネル急接近":"とんねるきゅうせっきん","ドカン！インパクト":"どかん！いんぱくと","サークルオープン":"さーくるおーぷん","バウンドフォト":"ばうんどふぉと","ザブーン！ウェーブ":"ざぶーん！うぇーぶ","3Dフリップ":"すりーでぃーふりっぷ","キラキラポップ":"きらきらぽっぷ","4つに分かれた画面が、四方から合体！":"よっつにわかれたがめんが、しほうからがったい！","細長い画面が、上下から一気に飛びこむ！":"ほそながいがめんが、じょうげからいっきにとびこむ！","遠くからグーンと急接近！":"とおくからぐーんときゅうせっきん！","大きくドカン！と登場する迫力タイプ。":"おおきくどかん！ととうじょうするはくりょくたいぷ。","丸が大きく広がって画面が開く！":"まるがおおきくひろがってがめんがひらく！","上から落ちて、ポンポンはずんで止まる！":"うえからおちて、ぽんぽんはずんでとまる！","波のようにゆれて、波紋が広がる！":"なみのようにゆれて、はもんがひろがる！","画面が立体的にクルッと回転！":"がめんがりったいてきにくるっとかいてん！","星と光がはじけて、楽しく登場！":"ほしとひかりがはじけて、たのしくとうじょう！","▶ じぶんのムービーを ぜんぶみる":"","▶ 3つをつなげてみる":"みっつをつなげてみる","東京 の 建物":"とうきょう の たてもの","3つ できたら、1つのムービーになります。":"","ゆうめいな たかい たてものがあります":"","これは とうきょうやない！ おおさかや！":"","ビルが たくさん ならんでます":"","これは かながわけん です！":"","れきしてきな たてものも あります":"","くまモンがいるのは くまもとけん です！":"","とうきょうといえば だいとかい！":"","ビルだけでは ありません":"","とうきょう には しぜんが……":"","とうきょうにも しぜんはあります！":"","おおきな やまが あります":"","ふじさんは とうきょうじゃないですよ":"","しぜんゆたかな こうえんです":"","しゅうがくりょこうで いったでしょ！ これはとちぎけん！":"","やまへ GO！":"","つぎは こうえん！":"","とうきょうにはうみが……":"","とうきょうにも うみはあります！":"","とうきょうの うみも たのしいよ":"","ざんねん！　これは おきなわけん です":"","しまも あるのが とうきょうです。":"","シーパラダイス！　これは しまとは いわない！ とうきょう でもない！":"","うみを みてみよう！":"","それだけじゃ ないですよ":"","とうきょうって……":"","しぜんのつぎは……":"","うみもある！":"","とかいも！":"","みどりも！　うみも！":"","とかいも　みどりも　うみもある":"","ぜんぶとうきょうと！":"","東京都":"とうきょうと"};
+
+function applyReadings(root){
+  if(!root) return;
+  const skipTags=new Set(["SCRIPT","STYLE","TEXTAREA","INPUT","OPTION"]);
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  const targets=[];
+  while(walker.nextNode()){
+    const n=walker.currentNode;
+    const p=n.parentElement;
+    if(!p || skipTags.has(p.tagName)) continue;
+    if(p.closest(".readingBlock") || p.closest(".landmarkChar") || p.closest(".landmarkKana")) continue;
+    const raw=n.nodeValue;
+    const core=raw.trim();
+    if(core && READINGS[core]) targets.push([n,raw,core]);
+  }
+  targets.forEach(([n,raw,core])=>{
+    if(!n.parentNode) return;
+    const lead=raw.slice(0,raw.indexOf(core));
+    const trail=raw.slice(raw.indexOf(core)+core.length);
+    const frag=document.createDocumentFragment();
+    if(lead) frag.appendChild(document.createTextNode(lead));
+    const wrap=document.createElement("span");
+    wrap.className="readingBlock";
+    const main=document.createElement("span");
+    main.className="readingMain";
+    main.textContent=core;
+    const kana=document.createElement("span");
+    kana.className="readingKana";
+    kana.textContent=READINGS[core];
+    wrap.append(main,kana);
+    frag.appendChild(wrap);
+    if(trail) frag.appendChild(document.createTextNode(trail));
+    n.parentNode.replaceChild(frag,n);
+  });
+}
+const EFFECTS = {
+  split:{name:"4分割アタック",kana:"よんぶんかつあたっく",desc:"4つに分かれた画面が、四方から合体！"},
+  shutter:{name:"シャッターダッシュ",kana:"しゃったーだっしゅ",desc:"細長い画面が、上下から一気に飛びこむ！"},
+  tunnel:{name:"トンネル急接近",kana:"とんねるきゅうせっきん",desc:"遠くからグーンと急接近！"},
+  impact:{name:"ドカン！インパクト",kana:"どかん！いんぱくと",desc:"大きくドカン！と登場する迫力タイプ。"},
+  circle:{name:"サークルオープン",kana:"さーくるおーぷん",desc:"丸が大きく広がって画面が開く！"},
+  bounce:{name:"バウンドフォト",kana:"ばうんどふぉと",desc:"上から落ちて、ポンポンはずんで止まる！"},
+  wave:{name:"ザブーン！ウェーブ",kana:"ざぶーん！うぇーぶ",desc:"波のようにゆれて、波紋が広がる！"},
+  flip:{name:"3Dフリップ",kana:"すりーでぃーふりっぷ",desc:"画面が立体的にクルッと回転！"},
+  stars:{name:"キラキラポップ",kana:"きらきらぽっぷ",desc:"星と光がはじけて、楽しく登場！"}
+};
+
+// 1周目は9場面すべて別の演出
+const DEFAULT_EFFECTS = {
+  city:["split","shutter","tunnel"],
+  green:["impact","circle","bounce"],
+  sea:["wave","flip","stars"]
+};
+
+function cloneDefaultEffects(){
+  return {
+    city:[...DEFAULT_EFFECTS.city],
+    green:[...DEFAULT_EFFECTS.green],
+    sea:[...DEFAULT_EFFECTS.sea]
+  };
+}
+
+const state = {
+  currentPart:null,
+  q:0,
+  completed:{city:false,green:false,sea:false},
+  finalWatched:false,
+  freeMovieReady:false,
+  answers:{city:[null,null,null],green:[null,null,null],sea:[null,null,null]},
+  freeMode:false,
+  freeText:{city:["","",""],green:["","",""],sea:["","",""]},
+  effects:cloneDefaultEffects(),
+  order:{city:[null,null,null],green:[null,null,null],sea:[null,null,null]}
+};
+
+let movieTimers=[];
+
+function showOnly(id){
+  ["home","builder","movie"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));
+}
+function goHome(){
+  stopMovie();
+  state.freeMode=false;
+  showOnly("home");
+  refreshHome();
+}
+function refreshHome(){
+  ["city","green","sea"].forEach(p=>{
+    const st=document.getElementById("status-"+p);
+    st.textContent=state.completed[p]?"できた！ ✓":"まだ";
+  });
+  const all=Object.values(state.completed).every(Boolean);
+  document.getElementById("finalLocked").classList.toggle("hidden",all);
+  document.getElementById("finalReady").classList.toggle("hidden",!all);
+
+  const unlock=document.getElementById("freeModeUnlock");
+  const lockNote=document.getElementById("freeModeLockedNote");
+  const freeReplay=document.getElementById("freeMovieReplay");
+  if(unlock) unlock.classList.toggle("hidden",!state.finalWatched);
+  if(lockNote) lockNote.classList.toggle("hidden",state.finalWatched);
+  if(freeReplay) freeReplay.classList.toggle("hidden",!state.freeMovieReady);
+  applyReadings(document.getElementById("home"));
+}
+
+function shuffledIndices(n){
+  const a=[...Array(n).keys()];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function ensureOrder(part,qi){
+  const q=DATA[part].questions[qi];
+  if(!state.order[part][qi]) state.order[part][qi]=shuffledIndices(q.options.length);
+  return state.order[part][qi];
+}
+
+function openPart(part){
+  state.currentPart=part;
+  state.q=0;
+  state.freeMode=false;
+  showOnly("builder");
+  renderQuestion();
+}
+
+function startFreeMode(){
+  state.freeMode=true;
+  state.freeMovieReady=false;
+  state.currentPart="city";
+  state.q=0;
+  state.freeText={city:["","",""],green:["","",""],sea:["","",""]};
+  state.effects=cloneDefaultEffects();
+  state.answers={city:[null,null,null],green:[null,null,null],sea:[null,null,null]};
+  state.order={city:[null,null,null],green:[null,null,null],sea:[null,null,null]};
+  showOnly("builder");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const p=state.currentPart;
+  const part=DATA[p];
+  const q=part.questions[state.q];
+  document.getElementById("partTitle").textContent=part.title;
+  document.getElementById("modeLabel").textContent=state.freeMode?"じぶんのことばでつくる":"しゃしんを えらぼう";
+  document.getElementById("questionText").textContent=q.text;
+  document.querySelectorAll(".dot").forEach((d,i)=>d.classList.toggle("on",i===state.q));
+
+  const box=document.getElementById("choices");
+  box.innerHTML="";
+  box.className="choiceGrid"+(q.type==="text"?" two":"");
+
+  const order=ensureOrder(p,state.q);
+  order.forEach(i=>{
+    const o=q.options[i];
+    const b=document.createElement("button");
+    b.className="choice "+(q.type==="text"?"textChoice":"");
+    if(state.answers[p][state.q]===i)b.classList.add("selected");
+    if(q.type==="image"){
+      const img=document.createElement("img");
+      img.src=o.img; img.alt=o.label;
+      img.onerror=()=>{img.style.display="none";};
+      b.appendChild(img);
+      const ss=document.createElement("div");
+      ss.textContent=o.label;b.appendChild(ss);
+    }else{
+      b.textContent=o.label;
+    }
+    b.onclick=()=>{
+      state.answers[p][state.q]=i;
+      renderQuestion();
+    };
+    box.appendChild(b);
+  });
+
+  const freeBox=document.getElementById("freeTextBox");
+  freeBox.classList.toggle("hidden",!state.freeMode);
+  if(state.freeMode){
+    const input=document.getElementById("freeText");
+    input.value=state.freeText[p][state.q]||"";
+    input.oninput=()=>state.freeText[p][state.q]=input.value;
+
+    const effectSelect=document.getElementById("effectSelect");
+    const effectDesc=document.getElementById("effectDesc");
+    effectSelect.innerHTML=Object.entries(EFFECTS)
+      .map(([id,e])=>`<option value="${id}">${e.name}　（${e.kana}）</option>`).join("");
+    effectSelect.value=state.effects[p][state.q] || DEFAULT_EFFECTS[p][state.q];
+    effectDesc.textContent=EFFECTS[effectSelect.value].desc;
+    effectSelect.onchange=()=>{
+      state.effects[p][state.q]=effectSelect.value;
+      effectDesc.textContent=EFFECTS[effectSelect.value].desc;
+      applyReadings(effectDesc);
+    };
+  }
+
+  document.getElementById("prevBtn").style.visibility=state.q===0?"hidden":"visible";
+  document.getElementById("nextBtn").textContent=state.q===2?"▶ ムービーをみる":"つぎへ →";
+  applyReadings(document.getElementById("builder"));
+}
+
+function prevQuestion(){
+  if(state.q>0){state.q--;renderQuestion();}
+}
+function nextQuestion(){
+  const p=state.currentPart;
+  if(state.answers[p][state.q]===null){
+    pulseMessage("１つえらびましょう");
+    return;
+  }
+  if(state.q<2){state.q++;renderQuestion();return;}
+  playPartMovie(p);
+}
+function pulseMessage(text){
+  const old=document.querySelector(".tempMsg");
+  if(old)old.remove();
+  const d=document.createElement("div");
+  d.className="tempMsg";
+  d.textContent=text;
+  d.style.cssText="position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:50;background:#ffef7a;padding:14px 24px;border-radius:999px;font-size:26px;font-weight:900;box-shadow:0 6px 18px #0003";
+  document.body.appendChild(d);
+  applyReadings(d);
+  setTimeout(()=>d.remove(),1300);
+}
+
+function stopMovie(){
+  movieTimers.forEach(clearTimeout);movieTimers=[];
+  document.getElementById("movieStage").className="";
+}
+const MOVIE_SPEED=2;
+function later(fn,ms){movieTimers.push(setTimeout(fn,ms*MOVIE_SPEED));}
+function movieHTML(html,cls=""){
+  const st=document.getElementById("movieStage");
+  st.className=cls;
+  st.innerHTML=html;
+  applyReadings(st);
+}
+
+function addSpeedLines(count=7){
+  const st=document.getElementById("movieStage");
+  for(let i=0;i<count;i++){
+    const line=document.createElement("i");
+    line.className="speedLine";
+    line.style.top=(10+Math.random()*80)+"%";
+    line.style.animationDelay=(Math.random()*.7)+"s";
+    st.appendChild(line);
+    setTimeout(()=>line.remove(),4200);
+  }
+}
+function addFlashRing(){
+  const st=document.getElementById("movieStage");
+  const ring=document.createElement("i");
+  ring.className="flashRing";
+  st.appendChild(ring);
+  setTimeout(()=>ring.remove(),3600);
+}
+
+function addFlashFull(){
+  const st=document.getElementById("movieStage");
+  const e=document.createElement("div");e.className="flashFull";st.appendChild(e);
+  setTimeout(()=>e.remove(),2600);
+}
+function addRadialBurst(){
+  const st=document.getElementById("movieStage");
+  const e=document.createElement("div");e.className="radialBurst";st.appendChild(e);
+  setTimeout(()=>e.remove(),3600);
+}
+function addScan(){
+  const st=document.getElementById("movieStage");
+  const e=document.createElement("div");e.className="scanBar";st.appendChild(e);
+  setTimeout(()=>e.remove(),3400);
+}
+function addSlash(){
+  const st=document.getElementById("movieStage");
+  const e=document.createElement("div");e.className="cornerSlash";st.appendChild(e);
+  setTimeout(()=>e.remove(),3200);
+}
+function addStars(count=10){
+  const st=document.getElementById("movieStage");
+  const marks=["★","✦","✧","◆"];
+  for(let i=0;i<count;i++){
+    const e=document.createElement("div");
+    e.className="starPop";
+    e.textContent=marks[i%marks.length];
+    e.style.left=(5+Math.random()*90)+"%";
+    e.style.top=(5+Math.random()*85)+"%";
+    e.style.animationDelay=(Math.random()*.8)+"s";
+    st.appendChild(e);
+    setTimeout(()=>e.remove(),4000);
+  }
+}
+function addRipples(count=3){
+  const st=document.getElementById("movieStage");
+  for(let i=0;i<count;i++){
+    const e=document.createElement("div");
+    e.className="ripple";
+    e.style.animationDelay=(i*.45)+"s";
+    st.appendChild(e);
+    setTimeout(()=>e.remove(),4200);
+  }
+}
+function addConfetti(count=36){
+  const st=document.getElementById("movieStage");
+  for(let i=0;i<count;i++){
+    const e=document.createElement("div");
+    e.className="confetti";
+    e.style.left=(Math.random()*100)+"%";
+    e.style.top=(-10-Math.random()*30)+"vh";
+    e.style.background=`hsl(${Math.random()*360} 90% 60%)`;
+    e.style.animationDelay=(Math.random()*1.2)+"s";
+    e.style.transform=`rotate(${Math.random()*180}deg)`;
+    st.appendChild(e);
+    setTimeout(()=>e.remove(),6000);
+  }
+}
+function splitImageScene(img,text,sub,textClass="textMega textNeon"){
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:#101820"></div>
+    <div class="splitWrap">
+      <div class="splitPiece splitTL" style="background-image:url('${img}')"></div>
+      <div class="splitPiece splitTR" style="background-image:url('${img}')"></div>
+      <div class="splitPiece splitBL" style="background-image:url('${img}')"></div>
+      <div class="splitPiece splitBR" style="background-image:url('${img}')"></div>
+    </div>
+    <div class="overlay"></div>
+    <div class="movieText ${textClass} wordSlam">${text}<span class="movieSub">${sub}</span></div>
+  `);
+}
+function shutterImageScene(img,text,sub,textClass="textMega textOutline"){
+  let shutters="";
+  for(let i=0;i<6;i++){
+    const x=i*20;
+    shutters+=`<div class="shutter" style="--dir:${i%2===0?'-120vh':'120vh'};background-image:url('${img}');background-position:${x}% 50%"></div>`;
+  }
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:#111"></div>
+    <div class="shutterWrap">${shutters}</div>
+    <div class="overlay"></div>
+    <div class="movieText ${textClass} flyRight ${textClass.includes("textNeon")?"city2Readable":""}">${text}<span class="movieSub">${sub}</span></div>
+  `);
+}
+function circleImageScene(img,text,sub,textClass="textMega textNature"){
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:#16391a"></div>
+    <div class="circleReveal" style="background-image:url('${img}')"></div>
+    <div class="overlay"></div>
+    <div class="movieText ${textClass} zoomBurst">${text}<span class="movieSub">${sub}</span></div>
+  `);
+}
+function flipImageScene(img,text,sub,textClass="textMega textSea"){
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:#082f47"></div>
+    <div class="flipWall" style="background-image:url('${img}')"></div>
+    <div class="overlay"></div>
+    <div class="movieText ${textClass} dropIn">${text}<span class="movieSub">${sub}</span></div>
+  `);
+}
+function tunnelImageScene(img,text,sub,textClass="textMega textSea"){
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:#05263d"></div>
+    <div class="tunnelZoom" style="background-image:url('${img}')"></div>
+    <div class="overlay"></div>
+    <div class="movieText ${textClass} wordSlam">${text}<span class="movieSub">${sub}</span></div>
+  `);
+}
+function bounceImageScene(img,text,sub,textClass="textMega textNature"){
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#16391a,#7bbf62)"></div>
+    <div class="bounceFrame" style="background-image:url('${img}')"></div>
+    <div class="movieText ${textClass} flyLeft">${text}<span class="movieSub">${sub}</span></div>
+  `);
+}
+function addSparks(count=18){
+  const st=document.getElementById("movieStage");
+  for(let i=0;i<count;i++){
+    const sp=document.createElement("i");
+    sp.className="spark";
+    sp.style.left=(45+Math.random()*10)+"%";
+    sp.style.top=(45+Math.random()*10)+"%";
+    sp.style.setProperty("--x",(Math.random()*700-350)+"px");
+    sp.style.setProperty("--y",(Math.random()*500-250)+"px");
+    st.appendChild(sp);
+    setTimeout(()=>sp.remove(),2200);
+  }
+}
+function imageScene(img,text,sub="",imgFx="",textFx="slideUp",extra=""){
+  movieHTML(`
+    <div class="placeholder" style="position:absolute;inset:0"></div>
+    <img class="bgImage ${imgFx}" src="${img}" alt="${sub}" onerror="this.style.display='none'">
+    <div class="overlay"></div>
+    ${extra}
+    <div class="movieText ${textFx}">${text}${sub?`<span class="movieSub">${sub}</span>`:""}</div>
+  `);
+}
+function textScene(text,sub="",bg="#111"){
+  movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div><div class="movieText fadeIn">${text}${sub?`<span class="movieSub">${sub}</span>`:""}</div>`);
+}
+function popScene(word,bg="#111",hero=false){
+  movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div><div class="movieText ${hero?"heroWord zoomBurst":"bigWord"}">${word}</div>`);
+}
+
+
+function getEffectId(part,qi){
+  return state.freeMode
+    ? (state.effects[part][qi] || DEFAULT_EFFECTS[part][qi])
+    : DEFAULT_EFFECTS[part][qi];
+}
+
+function themeTextClass(part){
+  if(part==="green") return "textMega textNature";
+  if(part==="sea") return "textMega textSea";
+  return "textMega textNeon";
+}
+
+function renderTextOnlyEffect(effectId,part,prompt,label){
+  const bg = part==="green"
+    ? "radial-gradient(circle,#d8ffc7,#3b8f45 70%,#153d20)"
+    : part==="sea"
+      ? "linear-gradient(#8be8ff 0 40%,#0b91c9 40% 72%,#00618f 72%)"
+      : "radial-gradient(circle,#506987,#172230)";
+  const cls=themeTextClass(part);
+
+  if(effectId==="split"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="radialBurst"></div>
+      <div class="movieText ${cls} wordSlam">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addFlashFull();addStars(14);},450);
+  }else if(effectId==="shutter"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="gridRush"></div>
+      <div class="movieText ${cls} wordSide">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addSpeedLines(10);addScan();},420);
+  }else if(effectId==="tunnel"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="movieText ${cls} zoomBurst">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addFlashRing();addRadialBurst();},520);
+  }else if(effectId==="impact"){
+    movieHTML(`<div class="bgPulse" style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="impactBar"></div>
+      <div class="movieText ${cls} wordSlam">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addFlashFull();addSparks(34);addStars(14);},430);
+  }else if(effectId==="circle"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="radialBurst"></div>
+      <div class="movieText ${cls} zoomBurst">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addRipples(3);addSparks(20);},560);
+  }else if(effectId==="bounce"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="movieText ${cls} dropIn">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addStars(18);addFlashRing();},570);
+  }else if(effectId==="wave"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="movieText ${cls} waveText">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addRipples(4);addSparks(24);},460);
+  }else if(effectId==="flip"){
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="movieText ${cls} wordFlip">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addFlashRing();addSpeedLines(6);},520);
+  }else{
+    movieHTML(`<div style="position:absolute;inset:0;background:${bg}"></div>
+      <div class="movieText ${cls} zoomBurst">${prompt}<span class="movieSub heroWord">${label}！</span></div>`);
+    later(()=>{addStars(24);addSparks(30);addFlashFull();},480);
+  }
+}
+
+function renderEffect(effectId,part,qi,o,custom){
+  if(!o.img){
+    renderTextOnlyEffect(effectId,part,custom,o.label);
+    return;
+  }
+  const cls=themeTextClass(part);
+
+  if(effectId==="split"){
+    splitImageScene(o.img,custom,o.label,cls);
+    later(()=>{addFlashFull();addRadialBurst();addStars(12);},520);
+  }else if(effectId==="shutter"){
+    shutterImageScene(o.img,custom,o.label,cls);
+    later(()=>{addSpeedLines(12);addSlash();addScan();},420);
+  }else if(effectId==="tunnel"){
+    tunnelImageScene(o.img,custom,o.label,cls);
+    later(()=>{addFlashRing();addStars(14);addRadialBurst();},760);
+  }else if(effectId==="impact"){
+    imageScene(o.img,custom,o.label,"fx-city-1","wordSlam");
+    later(()=>{addFlashFull();addSparks(30);addStars(14);},430);
+  }else if(effectId==="circle"){
+    circleImageScene(o.img,custom,o.label,cls);
+    later(()=>{addRipples(3);addSparks(24);addRadialBurst();},650);
+  }else if(effectId==="bounce"){
+    bounceImageScene(o.img,custom,o.label,cls);
+    later(()=>{addFlashRing();addStars(18);addSlash();},620);
+  }else if(effectId==="wave"){
+    imageScene(o.img,custom,o.label,"fx-sea-2","waveText");
+    later(()=>{addRipples(4);addSparks(24);addSpeedLines(5);},520);
+  }else if(effectId==="flip"){
+    flipImageScene(o.img,custom,o.label,cls);
+    later(()=>{addRipples(2);addSpeedLines(8);addScan();},600);
+  }else{
+    imageScene(o.img,custom,o.label,"fx-city-3","wordFlip");
+    later(()=>{addStars(24);addSparks(28);addFlashRing();},560);
+  }
+}
+
+function playPartMovie(part){
+  stopMovie();showOnly("movie");
+  const d=DATA[part];
+  const ans=state.answers[part];
+  const wrongIndex=ans.findIndex((choiceIndex,qi)=>!d.questions[qi].options[choiceIndex].ok);
+
+  textScene(d.title,"えらんだもので ムービーをつくります",d.color);
+  later(()=>playPartScene(part,0,wrongIndex),1400);
+}
+
+function playPartScene(part,qi,wrongIndex){
+  const d=DATA[part], q=d.questions[qi], oi=state.answers[part][qi], o=q.options[oi];
+  const custom=state.freeMode ? (state.freeText[part][qi]||q.text) : q.text;
+  renderEffect(getEffectId(part,qi),part,qi,o,custom);
+
+  later(()=>{
+    if(qi===wrongIndex){
+      playError(part,qi,o,q);
+      return;
+    }
+    if(qi<2){
+      playTransition(part,qi);
+      const transitionWait=(part==="city" && qi===1)?2600:900;
+      later(()=>playPartScene(part,qi+1,wrongIndex),transitionWait);
+    }else{
+      finishPart(part);
+    }
+  },3200);
+}
+
+function playTransition(part,qi){
+  if(part==="city" && qi===0){
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#111,#394a66)"></div>
+      <div class="gridRush"></div>
+      <div class="movieText heroWord flyRight textNeon" style="font-size:clamp(56px,10vw,132px)!important">とうきょうといえば だいとかい！</div>
+    `); addSpeedLines(10);
+  }else if(part==="city"){
+    movieHTML(`
+      <div class="landmarkStage">
+        <div class="landmarkBeam b1"></div>
+        <div class="landmarkBeam b2"></div>
+        <div class="landmarkUnderline"></div>
+        <div class="movieText landmarkLine">
+          <span class="landmarkChar">ビ</span><span class="landmarkChar">ル</span><span class="landmarkChar">だ</span><span class="landmarkChar">け</span><span class="landmarkChar">で</span><span class="landmarkChar">は</span><span class="landmarkChar"> </span><span class="landmarkChar">あ</span><span class="landmarkChar">り</span><span class="landmarkChar">ま</span><span class="landmarkChar">せ</span><span class="landmarkChar">ん</span>
+        </div>
+        <div class="landmarkKana">とうきょうのめいしょへ！</div>
+      </div>
+    `); addStars(14);
+  }else if(part==="green" && qi===0){
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:radial-gradient(circle,#dffff0,#54a84f)"></div>
+      <div class="movieText textMega textNature zoomBurst">やまへ GO！</div>
+    `); addRadialBurst(); addSparks(20);
+  }else if(part==="green"){
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#c6f5ae,#efffd9)"></div>
+      <div class="movieText textMega textNature flyLeft">つぎは こうえん！</div>
+    `); addStars(16); addSlash();
+  }else if(part==="sea" && qi===0){
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:linear-gradient(#7fe1ff,#087ab1)"></div>
+      <div class="movieText textMega textSea waveText">うみを みてみよう！</div>
+    `); addRipples(4);
+  }else{
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:linear-gradient(#9cecff,#006b9f)"></div>
+      <div class="movieText textMega textSea dropIn">それだけじゃ ないですよ</div>
+    `); addSpeedLines(8); addFlashRing();
+  }
+}
+function playError(part,qi,o,q){
+  movieHTML(`
+    ${o.img?`<img class="bgImage" src="${o.img}" alt="">`:""}
+    <div class="overlay"></div>
+    <div class="movieText errorText">エラー！<span class="movieSub">${q.errorMessage || "これは 東京都じゃないみたい！"}</span></div>
+  `,"glitch");
+  later(()=>{
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:#210707"></div>
+      <div class="movieText">
+        なおしてみよう！
+        <span class="movieSub">${o.label}</span>
+        <br><br>
+        <button class="mainBtn" onclick="retryWrong(${qi})">もどって なおす</button>
+      </div>
+    `);
+  },1500);
+}
+
+function retryWrong(qi){
+  stopMovie();showOnly("builder");
+  state.q=qi;
+  state.order[state.currentPart][qi]=null;
+  renderQuestion();
+}
+
+function nextFreePart(part){
+  stopMovie();
+  const next = part==="city" ? "green" : part==="green" ? "sea" : null;
+  if(next){
+    state.currentPart=next;
+    state.q=0;
+    showOnly("builder");
+    renderQuestion();
+  }else{
+    state.freeMovieReady=true;
+    playFreeFinalMovie();
+  }
+}
+
+function finishPart(part){
+  state.completed[part]=true;
+  const d=DATA[part];
+
+  if(state.freeMode){
+    const nextLabel = part==="city"
+      ? "② 東京の緑へ"
+      : part==="green"
+        ? "③ 東京の海へ"
+        : "▶ 3つをつなげてみる";
+    movieHTML(`
+      <div class="completeBurst">
+        <div class="zoomBurst">
+          <h2>${d.title}<br>できた！</h2>
+          <p style="font-size:26px">ことばと えんしゅつも えらびました。</p>
+          <button class="mainBtn" onclick="nextFreePart('${part}')">${nextLabel}</button>
+          <button class="smallBtn" onclick="goHome()">🏠 ホームへ</button>
+        </div>
+      </div>
+    `);
+  }else{
+    movieHTML(`
+      <div class="completeBurst">
+        <div class="zoomBurst">
+          <h2>${d.title}<br>できた！</h2>
+          <p style="font-size:26px">えらんだものが ムービーになりました。</p>
+          <button class="mainBtn" onclick="goHome()">🏠 ホームへ</button>
+        </div>
+      </div>
+    `);
+  }
+  addSparks(34);
+}
+
+function skipMovie(){
+  if(state.currentPart && !document.getElementById("movie").classList.contains("hidden")){
+    stopMovie();
+    if(state.currentPart==="final"){goHome();}
+    else finishPart(state.currentPart);
+  }
+}
+
+
+function playFreeFinalMovie(){
+  if(!state.freeMovieReady) return;
+  state.freeMode=true;
+  playFinalMovie();
+}
+
+function playFinalMovie(){
+  stopMovie();
+  state.currentPart="final";
+  showOnly("movie");
+  document.getElementById("movieControls").style.display="flex";
+
+  // 最終版オープニング
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:
+      radial-gradient(circle at 30% 30%,#5ed0ff55,transparent 25%),
+      radial-gradient(circle at 70% 35%,#8ee88455,transparent 26%),
+      radial-gradient(circle at 50% 75%,#ffd15a55,transparent 28%),
+      #101827"></div>
+    <div class="movieText zoomBurst">
+      とうきょうって……
+      <span class="movieSub">どんなところ？</span>
+    </div>
+  `);
+  addSparks(24);
+
+  later(()=>{
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:#111"></div>
+      <div class="movieText heroWord wordSlam" style="font-size:clamp(58px,10vw,135px)!important">
+        ゆうめいなものが<br>たくさんあります！
+      </div>
+    `);
+  },1200);
+
+  later(()=>playFinalPart("city",0),2500);
+}
+
+function playFinalPart(part,qi){
+  const d=DATA[part];
+  const q=d.questions[qi];
+  const oi=state.answers[part][qi];
+  const o=q.options[oi];
+  const custom=state.freeMode ? (state.freeText[part][qi]||q.text) : q.text;
+  renderEffect(getEffectId(part,qi),part,qi,o,custom);
+
+  later(()=>{
+    if(qi<2){
+      playFinalMiniTransition(part,qi);
+      const transitionWait=(part==="city" && qi===1)?2600:900;
+      later(()=>playFinalPart(part,qi+1),transitionWait);
+    }else{
+      if(part==="city"){
+        playBridgeCityToGreen();
+        later(()=>playFinalPart("green",0),2600);
+      }else if(part==="green"){
+        playBridgeGreenToSea();
+        later(()=>playFinalPart("sea",0),2600);
+      }else{
+        playBridgeSeaToEnding();
+        later(()=>finalEnding(),2600);
+      }
+    }
+  },3200);
+}
+
+function playFinalMiniTransition(part,qi){
+  // 各ショートムービー内の短いつなぎ
+  if(part==="city" && qi===0){
+    movieHTML(`
+      <div class="cityFlash" style="position:absolute;inset:0"></div>
+      <div class="movieText heroWord flyRight" style="font-size:clamp(54px,9vw,120px)!important">とうきょうといえば だいとかい！</div>
+    `);
+  }else if(part==="city"){
+    movieHTML(`
+      <div class="landmarkStage">
+        <div class="landmarkBeam b1"></div>
+        <div class="landmarkBeam b2"></div>
+        <div class="landmarkUnderline"></div>
+        <div class="movieText landmarkLine">
+          <span class="landmarkChar">ビ</span><span class="landmarkChar">ル</span><span class="landmarkChar">だ</span><span class="landmarkChar">け</span><span class="landmarkChar">で</span><span class="landmarkChar">は</span><span class="landmarkChar"> </span><span class="landmarkChar">あ</span><span class="landmarkChar">り</span><span class="landmarkChar">ま</span><span class="landmarkChar">せ</span><span class="landmarkChar">ん</span>
+        </div>
+        <div class="landmarkKana">とうきょうのめいしょへ！</div>
+      </div>
+    `);
+  }else if(part==="green" && qi===0){
+    movieHTML(`
+      <div class="greenFlash" style="position:absolute;inset:0"></div>
+      <div class="movieText zoomBurst" style="color:#12350e;text-shadow:none">やまへ GO！</div>
+    `);
+  }else if(part==="green"){
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#b9ef9f,#efffdc)"></div>
+      <div class="movieText flyLeft" style="color:#174014;text-shadow:none">つぎは こうえん！</div>
+    `);
+  }else if(part==="sea" && qi===0){
+    movieHTML(`
+      <div class="seaFlash" style="position:absolute;inset:0"></div>
+      <div class="movieText waveText">うみを みてみよう！</div>
+    `);
+  }else{
+    movieHTML(`
+      <div style="position:absolute;inset:0;background:linear-gradient(#8fe4ff,#066aa5)"></div>
+      <div class="movieText dropIn">それだけじゃ ないですよ</div>
+    `);
+  }
+}
+
+function playBridgeCityToGreen(){
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:linear-gradient(#2a2d37,#101218)"></div>
+    <div class="movieText zoomBurst" style="font-size:clamp(40px,7vw,90px)">
+      とうきょうは<br>とかいだけじゃない！
+    </div>
+    <div style="position:absolute;left:50%;bottom:-20%;width:130vw;height:55vh;border-radius:50%;
+      transform:translateX(-50%);background:#67b95f;animation:greenRise 1.5s ease forwards"></div>
+  `);
+  addSparks(24); addRadialBurst(); addSlash(); addFlashFull();
+}
+
+function playBridgeGreenToSea(){
+  // 緑が風で流れ、その下から海が現れる
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:linear-gradient(#c8f6bd,#6fbe62)"></div>
+    <div class="movieText flyLeft" style="color:#173a16;text-shadow:none;font-size:clamp(42px,7vw,92px)">
+      しぜんのつぎは……
+    </div>
+    <div style="position:absolute;left:-10%;right:-10%;bottom:-25%;height:65vh;
+      background:#149ed3;border-radius:50% 50% 0 0/20% 20% 0 0;
+      animation:seaRise 1.5s ease forwards"></div>
+    <div style="position:absolute;left:0;right:0;bottom:16%;font-size:clamp(46px,8vw,110px);
+      font-weight:1000;text-align:center;animation:waveText 1s .45s both">うみもある！</div>
+  `);
+  addRipples(4); addSpeedLines(8); addFlashRing();
+}
+
+function playBridgeSeaToEnding(){
+  // 海から全体まとめへ
+  movieHTML(`
+    <div style="position:absolute;inset:0;background:linear-gradient(#65d5ff,#0574ad)"></div>
+    <div class="movieText zoomBurst">
+      とかいも！
+      <span class="movieSub">みどりも！　うみも！</span>
+    </div>
+  `);
+  addSparks(34); addRadialBurst(); addStars(18); addFlashFull();
+}
+function finalEnding(){
+  state.finalWatched=true;
+  movieHTML(`
+    <div class="completeBurst">
+      <div class="radialBurst"></div>
+      <div class="zoomBurst" style="position:relative;z-index:10">
+        <div style="font-size:clamp(30px,5vw,64px);font-weight:1000">とかいも　みどりも　うみもある</div>
+        <h2 class="heroWord wordSlam" style="font-size:clamp(64px,12vw,160px)!important">ぜんぶとうきょうと！</h2>
+        <div style="font-size:clamp(28px,4vw,54px);font-weight:1000">東京都</div>
+        <br>
+        <button class="mainBtn" onclick="${state.freeMode?'playFreeFinalMovie()':'playFinalMovie()'}">▶ もういちどみる</button>
+        <button class="smallBtn" onclick="goHome()">🏠 ホーム</button>
+      </div>
+    </div>
+  `);
+  addConfetti(70);
+  addSparks(42);
+  addStars(26);
+  addFlashRing();
+  addRadialBurst();
+}
+
+refreshHome();
+applyReadings(document.getElementById("app"));
+</script>
+</body>
+</html>
